@@ -1,37 +1,44 @@
-﻿namespace AnagramFinderApp.AnagramHandler
+﻿using AnagramFinderApp.Utility;
+
+namespace AnagramFinderApp.AnagramHandler
 {
-    internal class Anagram
+    internal static class Anagram
     {
-        public static bool DoesStringContainAnagram(string _anagram, string _anagramComparer, out int[] _output)
+        public static bool DoesStringContainAnagram(string _anagram,
+            string _anagramComparer,
+            out Span<int> _output)
         {
-            int[] _valueIndex = Array.Empty<int>();
-            int _valueIndexCurrentRange = 0;
-            for (int i = 0; i < _anagram.Length; i++)
+			int[] _letterFrequency = new int[26];
+            for (int i = 0; i < _anagramComparer.Length; i++)
             {
-                if (_anagramComparer.
-                    Any((x) => x != _anagram[i])) continue;
+                _letterFrequency[ConversionUtility.CharToIndex(_anagramComparer[i])]++;
+            }
 
-				_valueIndexCurrentRange++;
+            int[] _indices = new int[_anagram.Length];
+            int _indicesIndex = 0;
 
-                Span<int> _previousValueIndex = _valueIndex;
-                _valueIndex = new int[_valueIndexCurrentRange];
-
-                _valueIndex[^1] = i;
-				for (int j = 0; j < _previousValueIndex.Length; j++)
-				{
-					_valueIndex[j] = _previousValueIndex[j];
+			for (int i = 0; i <= _anagram.Length - _anagramComparer.Length; i++)
+            {
+				int[] _anagramLetterFrequency = new int[26];
+                for (int j = 0; j < _anagramComparer.Length; j++)
+                {
+                    _anagramLetterFrequency[ConversionUtility.CharToIndex(_anagram[i + j])]++;
+                }
+                if (_letterFrequency.SequenceEqual(_anagramLetterFrequency))
+                {
+                    _indices[_indicesIndex] = i;
+                    _indicesIndex++;
 				}
-			}
-            if(_valueIndex == Array.Empty<int>())
+            }
+
+            if(_indicesIndex == 0)
             {
-                _output = _valueIndex;
+				_output = Array.Empty<int>();
 				return false;
             }
 
-
-
-            _output = new int[_anagramComparer.Length];
-            return true;
-        }
+            _output = _indices.AsSpan()[.._indicesIndex];
+			return true;
+		}
     }
 }
